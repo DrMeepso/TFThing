@@ -25,22 +25,33 @@ var needsUpdate = true;
     const model = await tflite.loadTFLiteModel('model.tflite');
     console.log('Model loaded.');
 
+    tf.setBackend("webgl").then(e => {
+
+        console.log(e)
+
+    })
+
+
     setInterval(() => {
 
 
         if (needsUpdate) {
             needsUpdate = false;
 
-            // get image from canvas
-            const canvas = document.getElementById('Drawing');
+            const data = tf.tidy(() => {
 
-            const tensor = tf.browser.fromPixels(canvas);
-            const resized = tf.image.resizeBilinear(tensor, [155, 155]);
-            const batched = resized.expandDims(0);
+                // get image from canvas
+                const canvas = document.getElementById('Drawing');
 
-            // predict
-            const prediction = model.predict(batched);
-            const data = prediction.dataSync();
+                const tensor = tf.browser.fromPixels(canvas);
+                const resized = tf.image.resizeBilinear(tensor, [155, 155]);
+                const batched = resized.expandDims(0);
+
+                // predict
+                const prediction = model.predict(batched);
+                return prediction.dataSync();
+
+            })
 
             // get max value
             let max = 0;
